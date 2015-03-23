@@ -7,6 +7,8 @@ public class Player : MonoBehaviour
     public GameObject Terrain;
     private ManaField manaField;
 
+    public float drainRate = 1;
+    public int drainSize = 5;
 	// Use this for initialization
 	void Start ()
     {
@@ -18,9 +20,9 @@ public class Player : MonoBehaviour
     {
 	
 
-        if(Input.GetKeyDown(KeyCode.Alpha1))
+        if(Input.GetKey(KeyCode.Alpha1))
         {
-            manaField.DrainMana(1, transform.position, 2, 2);
+            manaField.DrainMana(drainRate * Time.deltaTime, transform.position, drainSize, drainSize);
 
         }
 	}

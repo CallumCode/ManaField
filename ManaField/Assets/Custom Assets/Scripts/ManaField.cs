@@ -11,6 +11,8 @@ public class ManaField : MonoBehaviour
     public TerrainData terrainLevel;
 
     public float regainRate = 1;
+    public float difuseRate = 1;
+    public float manaBoundary = 1;
 
 	// Use this for initialization
 	void Start ()
@@ -23,36 +25,80 @@ public class ManaField : MonoBehaviour
 	// Update is called once per frame
 	void Update () 
     {
-        Regen(terrain, regainRate * Time.deltaTime);
+
+      
+            UpdateFlow(terrain, regainRate * Time.deltaTime);
+
   	}
 
  
-
-    void Regen(Terrain t, float rate)
+    float  Difuse(float[,,] mapOld , int x , int y  , float startMana)
     {
-        float[,,] maps = t.terrainData.GetAlphamaps(0, 0, t.terrainData.alphamapWidth, t.terrainData.alphamapHeight);
+
+        float mana = Mathf.Clamp01(1 - startMana);
+
+        float a = Time.deltaTime * difuseRate * terrainLevel.alphamapHeight * terrainLevel.alphamapWidth; // PASSS DOWN FOR OPI 
+        mana = (mana + a * (GetNeig(mapOld, x - 1, y) + GetNeig(mapOld, x + 1, y) + GetNeig(mapOld, x, y - 1) + GetNeig(mapOld, x, y + 1))) / (1 + 4 * a);
+
+
+        return Mathf.Clamp01(1 - mana);
+    }
+
+    float GetNeig(float[,,] mapOld , int x, int y)
+    {
+        if((x < 0 ) || (x >= terrainLevel.alphamapWidth) )
+        {
+            return manaBoundary;
+        }
+
+        if ((y < 0) || (y >= terrainLevel.alphamapHeight))
+        {
+            return manaBoundary;
+        }
+
+
+        return (1 - mapOld[x, y, 0]);
+    }
+
+    float Regen( float regenRate , float current )
+    {
+        float mana = 1 - current;
+        mana = mana + regenRate;
+        mana = Mathf.Clamp01(mana);
+        return 1- mana;
+    }
+    
+
+    void UpdateFlow(Terrain t, float regenRate)
+    {
+        float[,,] mapsNew = t.terrainData.GetAlphamaps(0, 0, t.terrainData.alphamapWidth, t.terrainData.alphamapHeight);
+        float[, ,] mapsOld = t.terrainData.GetAlphamaps(0, 0, t.terrainData.alphamapWidth, t.terrainData.alphamapHeight);
+
         float[, ,] mapsLevel = terrainLevel.GetAlphamaps(0, 0, terrainLevel.alphamapWidth, terrainLevel.alphamapHeight);
 
 
-        for (var y = 0; y < t.terrainData.alphamapHeight; y++)
+        for (int y = 0; y < t.terrainData.alphamapHeight; y++)
         {
-            for (var x = 0; x < t.terrainData.alphamapWidth; x++)
+            for (int x = 0; x < t.terrainData.alphamapWidth; x++)
             {
 
-                float mana = 1-  maps[x, y, 0];
-                mana = mana + rate;
-                mana = Mathf.Clamp01(mana);
-                maps[x, y, 0] = (1 - mana);
 
+             //   mapsNew[x, y, 0] = Regen(regenRate, mapsOld[x, y, 0]);
+                 
+                    mapsNew[x, y, 0] = Difuse(mapsOld, x, y, mapsNew[x, y, 0]);
+                 
+
+
+                // this sorts out the rest of the textures based on the mana level
                 for (int tex = 1; tex < t.terrainData.alphamapLayers; tex++)
                 {
-                    maps[x, y, tex] = mana * mapsLevel[x, y, tex];
+                    mapsNew[x, y, tex] = (  1- mapsNew[x, y, 0]    ) * mapsLevel[x, y, tex];
                 }
                 
              }
         }
 
-        t.terrainData.SetAlphamaps(0, 0, maps);
+        t.terrainData.SetAlphamaps(0, 0, mapsNew);
     }
 
     void Init()
@@ -65,7 +111,7 @@ public class ManaField : MonoBehaviour
 
 
         terrain.terrainData = terrainMana;
-        
+            
     }
 
 
@@ -101,7 +147,7 @@ public class ManaField : MonoBehaviour
 
     public float DrainMana(float drainStrength, Vector3 pos, int width, int height)
     {
-        float mana = 0;
+        float manaDrained = 0;
 
         float y = pos.z; // callng it y as the map is 2D
         float x = pos.x;
@@ -115,16 +161,24 @@ public class ManaField : MonoBehaviour
         int indexY = Mathf.RoundToInt( y * (terrain.terrainData.alphamapHeight-1));
         int indexX = Mathf.RoundToInt(x * (terrain.terrainData.alphamapWidth-1));
 
-        float[, ,] map = terrain.terrainData.GetAlphamaps(indexX, indexY , width, height);
+        float[, ,] map = terrain.terrainData.GetAlphamaps(indexX, indexY     , width, height);
+         float[, ,] mapLevel = terrainLevel.GetAlphamaps(indexX, indexY , width, height);
 
         for (int w = 0; w < width; w++ )
         {
             for (int h = 0; h < height; h++)
             {
-                map[w, h, 0] = 1;
+                float manaAtPoint = 1 - map[w, h, 0];
+
+                float newManaPoint = Mathf.Clamp01(manaAtPoint - drainStrength );
+
+                map[w, h, 0] = Mathf.Clamp01( 1- newManaPoint );
+
+                manaDrained += Mathf.Clamp01(manaAtPoint - newManaPoint);
+
                 for (int a = 1; a < terrain.terrainData.alphamapLayers; a++)
                 {
-                    map[w, h, a] = 0;
+                    map[w, h, a] = newManaPoint  * mapLevel[w, h, a];
                 }
             }
         }
@@ -134,7 +188,7 @@ public class ManaField : MonoBehaviour
         terrain.terrainData.SetAlphamaps(indexX, indexY, map);
 
 
-        return mana;
+        return manaDrained;
     }
 
 }
