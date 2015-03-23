@@ -61,6 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Custom Assets\Scripts\ManaField.cs" />
+    <Compile Include="Assets\Custom Assets\Scripts\Player.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Standard Assets\Cameras\CameraGuidelines.txt" />

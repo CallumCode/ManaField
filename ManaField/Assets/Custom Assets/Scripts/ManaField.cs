@@ -43,8 +43,13 @@ public class ManaField : MonoBehaviour
                 mana = mana + rate;
                 mana = Mathf.Clamp01(mana);
                 maps[x, y, 0] = (1 - mana);
-                maps[x, y, 1] = mana;
-            }
+
+                for (int tex = 1; tex < t.terrainData.alphamapLayers; tex++)
+                {
+                    maps[x, y, tex] = mana * mapsLevel[x, y, tex];
+                }
+                
+             }
         }
 
         t.terrainData.SetAlphamaps(0, 0, maps);
@@ -60,7 +65,7 @@ public class ManaField : MonoBehaviour
 
 
         terrain.terrainData = terrainMana;
-    
+        
     }
 
 
@@ -89,6 +94,47 @@ public class ManaField : MonoBehaviour
     {
         float[, ,] maps = level.GetAlphamaps(0, 0, level.alphamapWidth, level.alphamapHeight);
         mana.SetAlphamaps(0, 0, maps);
+
+        mana.SetHeights(0, 0, level.GetHeights(0, 0, level.heightmapHeight, level.heightmapWidth));    
+    }
+
+
+    public float DrainMana(float drainStrength, Vector3 pos, int width, int height)
+    {
+        float mana = 0;
+
+        float y = pos.z; // callng it y as the map is 2D
+        float x = pos.x;
+
+        y = y / (terrain.terrainData.size.z ) ;
+        x = x / (terrain.terrainData.size.x );
+
+        y = Mathf.Clamp01(y);
+        x = Mathf.Clamp01(x);
+
+        int indexY = Mathf.RoundToInt( y * (terrain.terrainData.alphamapHeight-1));
+        int indexX = Mathf.RoundToInt(x * (terrain.terrainData.alphamapWidth-1));
+
+        float[, ,] map = terrain.terrainData.GetAlphamaps(indexX, indexY , width, height);
+
+        for (int w = 0; w < width; w++ )
+        {
+            for (int h = 0; h < height; h++)
+            {
+                map[w, h, 0] = 1;
+                for (int a = 1; a < terrain.terrainData.alphamapLayers; a++)
+                {
+                    map[w, h, a] = 0;
+                }
+            }
+        }
+       
+
+
+        terrain.terrainData.SetAlphamaps(indexX, indexY, map);
+
+
+        return mana;
     }
 
 }
