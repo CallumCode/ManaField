@@ -60,8 +60,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Custom Assets\Scripts\Breakable.cs" />
     <Compile Include="Assets\Custom Assets\Scripts\ManaField.cs" />
     <Compile Include="Assets\Custom Assets\Scripts\Player.cs" />
+    <Compile Include="Assets\Custom Assets\Scripts\Spell.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Standard Assets\Cameras\CameraGuidelines.txt" />

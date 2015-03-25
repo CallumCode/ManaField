@@ -46,8 +46,10 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Custom Assets\Scripts\Breakable.cs" />
      <Compile Include="Assets\Custom Assets\Scripts\ManaField.cs" />
      <Compile Include="Assets\Custom Assets\Scripts\Player.cs" />
+     <Compile Include="Assets\Custom Assets\Scripts\Spell.cs" />
      <None Include="Assets\Standard Assets\Effects\GlassRefraction\Shaders\GlassStainedBumpDistort.shader" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\_BloomAndFlares\BlendOneOne.shader" />
      <None Include="Assets\Standard Assets\Effects\ImageEffects\Shaders\NoiseEffectShaderRGB.shader" />
