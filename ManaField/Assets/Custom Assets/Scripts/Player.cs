@@ -46,8 +46,11 @@ public class Player : MonoBehaviour
 
           if(Input.GetKeyUp(KeyCode.Alpha1) &&  (fire == true))
        {
-           Instantiate(spell1Object, spellLaunch.transform.position + spell1Object.transform.position, spellLaunch.transform.rotation);
+           GameObject spellObj = Instantiate(spell1Object, spellLaunch.transform.position + spell1Object.transform.position, spellLaunch.transform.rotation) as GameObject;
            fire = false;
+           Spell spellScript = spellObj.GetComponent<Spell>();
+           spellScript.FeedManaToSpell(currentMana);
+           spellScript.Fire();
        }
 	}
 }
